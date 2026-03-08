@@ -168,8 +168,9 @@ function simpsons_disable_rest_api($access) {
 add_filter('rest_authentication_errors', 'simpsons_disable_rest_api');
 
 /**
- * Comprimir HTML output
+ * Comprimir HTML output (DESHABILITADO: Rompía Schema JSON-LD de Google)
  */
+/*
 function simpsons_compress_html() {
     ob_start(function($html) {
         $html = preg_replace('/<!--(?!<!)[^\[>].*?-->/s', '', $html);
@@ -179,6 +180,7 @@ function simpsons_compress_html() {
     });
 }
 add_action('get_header', 'simpsons_compress_html');
+*/
 
 /**
  * Critical CSS inline
@@ -331,16 +333,16 @@ add_filter('xmlrpc_enabled', '__return_false');
 remove_action('wp_head', 'wp_generator');
 
 /**
- * Deshabilitar feeds
+ * Deshabilitar feeds (COMENTADO: Permitimos RSS para ayudar a la indexación rápida de Google)
  */
-function simpsons_disable_feeds() {
-    wp_die(__('No hay feeds disponibles. Por favor visita nuestra <a href="' . home_url('/') . '">página principal</a>.', 'simpsons-online'));
-}
-add_action('do_feed', 'simpsons_disable_feeds', 1);
-add_action('do_feed_rdf', 'simpsons_disable_feeds', 1);
-add_action('do_feed_rss', 'simpsons_disable_feeds', 1);
-add_action('do_feed_rss2', 'simpsons_disable_feeds', 1);
-add_action('do_feed_atom', 'simpsons_disable_feeds', 1);
+// function simpsons_disable_feeds() {
+//     wp_die(__('No hay feeds disponibles. Por favor visita nuestra <a href="' . home_url('/') . '">página principal</a>.', 'simpsons-online'));
+// }
+// add_action('do_feed', 'simpsons_disable_feeds', 1);
+// add_action('do_feed_rdf', 'simpsons_disable_feeds', 1);
+// add_action('do_feed_rss', 'simpsons_disable_feeds', 1);
+// add_action('do_feed_rss2', 'simpsons_disable_feeds', 1);
+// add_action('do_feed_atom', 'simpsons_disable_feeds', 1);
 
 /**
  * Deshabilitar REST endpoints innecesarios
@@ -379,8 +381,10 @@ add_action('wp_print_scripts', 'simpsons_disable_autosave');
  */
 function simpsons_optimize_queries($query) {
     if (!is_admin() && $query->is_main_query()) {
-        if (is_archive() || is_home()) {
-            $query->set('no_found_rows', false);
+        if (is_archive() || is_home() || is_front_page()) {
+            $query->set('no_found_rows', true);
+            $query->set('update_post_meta_cache', false);
+            $query->set('update_post_term_cache', false);
         }
     }
 }

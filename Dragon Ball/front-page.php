@@ -42,7 +42,7 @@ get_header(); ?>
                     <a href="<?php the_permalink(); ?>">
                         <div class="episode-thumbnail">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('episode-thumb'); ?>
+                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Episodio ' . get_the_title())); ?>
                             <?php else : ?>
                                 <div class="placeholder-thumb">
                                     <i class="fas fa-video"></i>
@@ -78,36 +78,7 @@ get_header(); ?>
     </div>
 </section>
 
-<!-- Navegación por Sagas -->
-<section class="container" style="margin-bottom: 4rem;">
-    <h2 class="section-title">Explorar por Sagas</h2>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-        <?php
-        $sagas = get_categories(array(
-            'orderby' => 'name',
-            'order' => 'ASC',
-            'hide_empty' => true
-        ));
-        
-        foreach ($sagas as $saga) :
-            ?>
-            <a href="<?php echo get_category_link($saga->term_id); ?>" class="episode-card" style="text-align: center; padding: 2rem 1rem;">
-                <div style="font-size: 3rem; color: var(--color-primary); margin-bottom: 1rem;">
-                    <i class="fas fa-dragon"></i>
-                </div>
-                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text);">
-                    <?php echo esc_html($saga->name); ?>
-                </h3>
-                <p style="color: var(--color-text-muted); font-size: 0.9rem;">
-                    <?php echo $saga->count; ?> episodios disponibles
-                </p>
-            </a>
-            <?php
-        endforeach;
-        ?>
-    </div>
-</section>
+
 
 <!-- Listado Completo de Episodios -->
 <section class="container" style="margin-bottom: 4rem;">
@@ -119,7 +90,10 @@ get_header(); ?>
             'posts_per_page' => 24,
             'paged' => get_query_var('paged') ? get_query_var('paged') : 1,
             'orderby' => 'date',
-            'order' => 'DESC'
+            'order' => 'DESC',
+            'no_found_rows' => true, // Optimización crítica: Evita el conteo total en SQL reduciendo la RAM
+            'update_post_meta_cache' => false, // Evita cargar meta-data innecesaria al index principal
+            'update_post_term_cache' => false // Evita cacheado de terminos en cada card
         ));
         
         if ($all_episodes->have_posts()) :
@@ -129,7 +103,7 @@ get_header(); ?>
                     <a href="<?php the_permalink(); ?>">
                         <div class="episode-thumbnail">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('episode-thumb'); ?>
+                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Ver episodio ' . get_the_title())); ?>
                             <?php else : ?>
                                 <div class="placeholder-thumb">
                                     <i class="fas fa-video"></i>

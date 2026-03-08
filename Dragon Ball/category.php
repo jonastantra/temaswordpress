@@ -10,17 +10,20 @@ get_header(); ?>
     <?php if (have_posts()) : ?>
         
         <header class="archive-header">
-            <h1><?php single_cat_title(); ?></h1>
+            <div class="category-breadcrumbs">
+                <a href="<?php echo home_url(); ?>">Inicio</a> <i class="fas fa-chevron-right"></i> <span><?php single_cat_title(); ?></span>
+            </div>
+            <h1>Ver <?php single_cat_title(); ?> Online en Español Latino</h1>
             <?php
             $category_description = category_description();
             if ($category_description) :
                 ?>
-                <p class="category-description"><?php echo $category_description; ?></p>
+                <div class="category-description"><?php echo $category_description; ?></div>
             <?php else : ?>
-                <p class="category-description">
-                    Todos los episodios de <?php single_cat_title(); ?>. 
-                    Total de <?php echo $wp_query->found_posts; ?> episodios disponibles.
-                </p>
+                <div class="category-description">
+                    Mira todos los episodios de <?php single_cat_title(); ?> online. 
+                    Contamos con <?php echo $wp_query->found_posts; ?> capítulos completos de esta saga en español latino y HD.
+                </div>
             <?php endif; ?>
         </header>
 

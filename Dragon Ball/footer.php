@@ -61,7 +61,11 @@
         <!-- Footer Bottom -->
         <div class="footer-bottom">
             <p>&copy; <?php echo date('Y'); ?> <?php bloginfo('name'); ?>. Todos los derechos reservados.</p>
-            <p class="disclaimer">Dragon Ball es propiedad de Toei Animation, Fuji TV y Akira Toriyama. Este sitio es solo para fines de entretenimiento.</p>
+            <div class="footer-legal-links">
+                <a href="<?php echo home_url('/politica-de-privacidad/'); ?>">Política de Privacidad</a> | 
+                <a href="<?php echo home_url('/aviso-legal/'); ?>">Aviso Legal</a>
+            </div>
+            <p class="disclaimer">Dragon Ball es propiedad de Toei Animation, Fuji TV y Akira Toriyama. Este sitio es solo para fines de entertainment.</p>
         </div>
     </div>
 </footer>

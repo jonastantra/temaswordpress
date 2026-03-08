@@ -42,7 +42,7 @@ get_header(); ?>
                     <a href="<?php the_permalink(); ?>">
                         <div class="episode-thumbnail">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('episode-thumb'); ?>
+                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Ver capítulo ' . esc_attr(get_the_title()) . ' de Los Simpsons')); ?>
                             <?php else : ?>
                                 <div class="placeholder-thumb">
                                     <i class="fas fa-video"></i>
@@ -129,7 +129,7 @@ get_header(); ?>
                     <a href="<?php the_permalink(); ?>">
                         <div class="episode-thumbnail">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('episode-thumb'); ?>
+                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Ver capítulo ' . esc_attr(get_the_title()) . ' completo')); ?>
                             <?php else : ?>
                                 <div class="placeholder-thumb">
                                     <i class="fas fa-video"></i>

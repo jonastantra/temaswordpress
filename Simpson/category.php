@@ -10,17 +10,22 @@ get_header(); ?>
     <?php if (have_posts()) : ?>
         
         <header class="archive-header">
-            <h1><?php single_cat_title(); ?></h1>
+            <?php if (function_exists('simpsons_add_breadcrumb_schema')) : ?>
+                <div class="category-breadcrumbs">
+                    <a href="<?php echo home_url(); ?>">Inicio</a> <i class="fas fa-chevron-right"></i> <span><?php single_cat_title(); ?></span>
+                </div>
+            <?php endif; ?>
+            <h1>Ver <?php single_cat_title(); ?> Online Gratis</h1>
             <?php
             $category_description = category_description();
             if ($category_description) :
                 ?>
-                <p class="category-description"><?php echo $category_description; ?></p>
+                <div class="category-description"><?php echo $category_description; ?></div>
             <?php else : ?>
-                <p class="category-description">
-                    Todos los capítulos de <?php single_cat_title(); ?>. 
-                    Total de <?php echo $wp_query->found_posts; ?> capítulos disponibles.
-                </p>
+                <div class="category-description">
+                    Disfruta de todos los capítulos de <?php single_cat_title(); ?> en español latino. 
+                    Tenemos <?php echo $wp_query->found_posts; ?> episodios disponibles para ver online en alta calidad.
+                </div>
             <?php endif; ?>
         </header>
 

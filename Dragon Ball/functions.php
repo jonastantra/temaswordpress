@@ -268,7 +268,7 @@ function dbonline_add_video_schema() {
             if ($p3) $potential_players[] = $p3;
         }
         
-        // Buscar el primer iframe y extraer src
+        // Extraer src de reproductores (incluye MEGA o iframes de terceros genericos)
         foreach ($potential_players as $player_code) {
             if (preg_match('/src="([^"]+)"/', $player_code, $match)) {
                 $embed_url = $match[1];
@@ -280,11 +280,11 @@ function dbonline_add_video_schema() {
             }
         }
         
-        // Si no encontramos embedUrl válido, usamos fallback al permalink pero ESTO ES LO QUE ESTABA FALLANDO
-        // Google prefiere no tener VideoObject a tener uno falso. 
-        // Sin embargo, dejaremos el permalink como último recurso pero trataremos de priorizar el real.
+        // Si no encontramos embedUrl válido o es MEGA (que Googlebot no puede renderizar bien a veces)
+        // Ya no ponemos the_permalink() falsamente, porque Google Search Console lo marca como 
+        // "El vídeo no está en una página de visualización"
         if (empty($embed_url)) {
-            $embed_url = get_permalink(); 
+            return; // ABORTAMOS: es mejor no tener schema que uno con errores para Google.
         }
 
         
@@ -305,7 +305,24 @@ function dbonline_add_video_schema() {
             'embedUrl' => $embed_url, // URL REAL DEL IFRAME
             'contentUrl' => $embed_url, // Generalmente igual para iframes de terceros
             'keywords' => implode(', ', $keywords),
-             'potentialAction' => array(
+            'about' => array(
+                '@type' => 'Thing',
+                'name' => 'Ver Dragon Ball Online Gratis'
+            ),
+            'actor' => array(
+                array('@type' => 'Person', 'name' => 'Goku'),
+                array('@type' => 'Person', 'name' => 'Vegeta'),
+                array('@type' => 'Person', 'name' => 'Gohan')
+            ),
+            'creator' => array(
+                '@type' => 'Person',
+                'name' => 'Akira Toriyama'
+            ),
+            'productionCompany' => array(
+                '@type' => 'Organization',
+                'name' => 'Toei Animation'
+            ),
+            'potentialAction' => array(
                 '@type' => 'WatchAction',
                 'target' => get_permalink()
             ),
@@ -317,9 +334,9 @@ function dbonline_add_video_schema() {
                     'url' => get_site_icon_url()
                 )
             ),
-             'inLanguage' => $in_language,
+            'inLanguage' => $in_language,
             'isFamilyFriendly' => true,
-             'genre' => array('Anime', 'Action', 'Fantasy')
+            'genre' => array('Anime', 'Action', 'Fantasy')
         );
         
         echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
@@ -342,6 +359,9 @@ function dbonline_add_dragonball_meta_tags() {
         'episodios Dragon Ball',
         'capitulos Dragon Ball',
         'Dragon Ball español latino',
+        'donde ver dragon ball super gratis',
+        'dragon ball hd sin limites',
+        'ver dragon ball online gratis',
         'DBZ online',
         'DBS online',
         'DBGT episodios',
@@ -379,7 +399,7 @@ function dbonline_add_dragonball_meta_tags() {
         echo '<meta name="twitter:description" content="' . esc_attr($meta_desc) . '">' . "\n";
         
     } elseif (is_home() || is_front_page()) {
-        $meta_desc = 'Ver Dragon Ball online gratis en español latino. Todos los episodios de Dragon Ball, DBZ, Dragon Ball GT, Dragon Ball Super, DB Kai y películas en HD. ¡Disfruta de Goku y todas las sagas!';
+        $meta_desc = 'Ver Dragon Ball online gratis en español latino. Todos los episodios de Dragon Ball, DBZ, Dragon Ball GT, Dragon Ball Super, DB Kai y películas en HD sin límites. ¡Disfruta de Goku y todas las sagas en el mejor sitio de Dragon Ball!';
         
         echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
         echo '<meta name="keywords" content="' . esc_attr(implode(', ', $keywords)) . '">' . "\n";
@@ -395,34 +415,88 @@ function dbonline_add_dragonball_meta_tags() {
         
         echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
         echo '<meta name="keywords" content="' . esc_attr($category->name) . ' online, episodios ' . esc_attr($category->name) . ', ' . esc_attr(implode(', ', $keywords)) . '">' . "\n";
+    } elseif (is_page()) {
+        $title = get_the_title();
+        $meta_desc = 'Guía de capítulos y episodios de ' . $title . '. Ver Dragon Ball online en español latino y HD. Lista completa de episodios gratis.';
+        
+        echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
+        echo '<meta name="keywords" content="' . esc_attr($title) . ', lista de episodios, guía de capítulos, ' . esc_attr(implode(', ', array_slice($keywords, 0, 5))) . '">' . "\n";
     }
     
-    // Canonical URL (importante para SEO)
-    echo '<link rel="canonical" href="' . esc_url(get_permalink()) . '">' . "\n";
+    // Canonical URL (importante para SEO) CONDICIONAL
+    if (is_singular()) {
+        echo '<link rel="canonical" href="' . esc_url(get_permalink()) . '">' . "\n";
+    } elseif (is_home() || is_front_page()) {
+        echo '<link rel="canonical" href="' . esc_url(home_url('/')) . '">' . "\n";
+    } elseif (is_category() || is_tag() || is_tax()) {
+        echo '<link rel="canonical" href="' . esc_url(get_term_link(get_queried_object())) . '">' . "\n";
+    } elseif (is_paged()) {
+        echo '<link rel="canonical" href="' . esc_url(get_pagenum_link(get_query_var('paged'))) . '">' . "\n";
+    }
 }
 add_action('wp_head', 'dbonline_add_dragonball_meta_tags', 5);
 
 /**
- * Breadcrumbs personalizados
+ * Breadcrumbs personalizados con Schema.org
  */
 function dbonline_breadcrumbs() {
     $separator = ' <i class="fas fa-chevron-right"></i> ';
     $home_title = 'Inicio';
     
-    echo '<nav class="breadcrumbs">';
+    // Schema List items
+    $itemListElement = array();
+    $position = 1;
+
+    // Item Inicio
+    $itemListElement[] = array(
+        '@type' => 'ListItem',
+        'position' => $position++,
+        'name' => $home_title,
+        'item' => home_url()
+    );
+
+    echo '<nav class="breadcrumbs" aria-label="Breadcrumb">';
     echo '<a href="' . home_url() . '">' . $home_title . '</a>' . $separator;
     
     if (is_category()) {
-        single_cat_title();
+        $cat_title = single_cat_title('', false);
+        echo $cat_title;
+        $itemListElement[] = array(
+            '@type' => 'ListItem',
+            'position' => $position++,
+            'name' => $cat_title,
+            'item' => get_category_link(get_queried_object_id())
+        );
     } elseif (is_single()) {
         $categories = get_the_category();
         if ($categories) {
             $category = $categories[0];
             echo '<a href="' . get_category_link($category->term_id) . '">' . $category->name . '</a>' . $separator;
+            
+            $itemListElement[] = array(
+                '@type' => 'ListItem',
+                'position' => $position++,
+                'name' => $category->name,
+                'item' => get_category_link($category->term_id)
+            );
         }
-        the_title();
+        $post_title = get_the_title();
+        echo $post_title;
+        $itemListElement[] = array(
+            '@type' => 'ListItem',
+            'position' => $position++,
+            'name' => $post_title,
+            'item' => get_permalink()
+        );
     } elseif (is_page()) {
-        the_title();
+        $post_title = get_the_title();
+        echo $post_title;
+        $itemListElement[] = array(
+            '@type' => 'ListItem',
+            'position' => $position++,
+            'name' => $post_title,
+            'item' => get_permalink()
+        );
     } elseif (is_search()) {
         echo 'Resultados de búsqueda: ' . get_search_query();
     } elseif (is_404()) {
@@ -430,6 +504,14 @@ function dbonline_breadcrumbs() {
     }
     
     echo '</nav>';
+    
+    // Imprimir el Schema JSON-LD de los Breadcrumbs
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $itemListElement
+    );
+    echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
 }
 
 /**
@@ -674,34 +756,28 @@ function dbonline_add_cache_headers() {
 add_action('send_headers', 'dbonline_add_cache_headers');
 
 /**
- * Deshabilitar REST API para usuarios no autenticados (seguridad y rendimiento)
+ * Deshabilitar endpoints de la REST API (seguridad y rendimiento parcial)
+ * No bloqueamos TODA la API, solo los usuarios para evitar scraping
  */
 function dbonline_disable_rest_api($access) {
-    if (!is_user_logged_in()) {
-        return new WP_Error('rest_disabled', __('La API REST está deshabilitada.', 'db-online'), array('status' => 403));
+    // Si ya es un wp_error o usuario logueado, dejamos pasar
+    if (is_wp_error($access) || is_user_logged_in()) {
+        return $access;
     }
+    
+    // Ya no bloqueamos todo, Yoast/RankMath necesitan API abierta para sus utilidades
     return $access;
 }
 add_filter('rest_authentication_errors', 'dbonline_disable_rest_api');
 
 /**
- * Comprimir HTML output
+ * ELIMINADO: Comprimir HTML output agresivamente.
+ * Razón SEO: La compresión con regex estaba destruyendo la integridad 
+ * del JSON-LD en los etiquetas script, haciendo que Google de un error 
+ * en el VideoObject y el BreadcrumbList
  */
-function dbonline_compress_html() {
-    ob_start(function($html) {
-        // Remover comentarios HTML
-        $html = preg_replace('/<!--(?!<!)[^\[>].*?-->/s', '', $html);
-        
-        // Remover espacios en blanco múltiples
-        $html = preg_replace('/\s+/', ' ', $html);
-        
-        // Remover espacios entre tags
-        $html = preg_replace('/>\s+</', '><', $html);
-        
-        return $html;
-    });
-}
-add_action('get_header', 'dbonline_compress_html');
+// function dbonline_compress_html() { ... }
+// add_action('get_header', 'dbonline_compress_html');
 
 /**
  * OPTIMIZACIONES AVANZADAS PARA SITIOS DE VIDEO
@@ -964,17 +1040,11 @@ add_filter('xmlrpc_enabled', '__return_false');
  */
 remove_action('wp_head', 'wp_generator');
 
-/**
- * Deshabilitar feeds innecesarios
- */
-function dbonline_disable_feeds() {
-    wp_die(__('No hay feeds disponibles. Por favor visita nuestra <a href="' . home_url('/') . '">página principal</a>.', 'db-online'));
-}
-add_action('do_feed', 'dbonline_disable_feeds', 1);
-add_action('do_feed_rdf', 'dbonline_disable_feeds', 1);
-add_action('do_feed_rss', 'dbonline_disable_feeds', 1);
-add_action('do_feed_rss2', 'dbonline_disable_feeds', 1);
-add_action('do_feed_atom', 'dbonline_disable_feeds', 1);
+// feeds restaurados (permitidos de nuevo) para ayudar a la indexación
+// add_action('do_feed_rdf', 'dbonline_disable_feeds', 1);
+// add_action('do_feed_rss', 'dbonline_disable_feeds', 1);
+// add_action('do_feed_rss2', 'dbonline_disable_feeds', 1);
+// add_action('do_feed_atom', 'dbonline_disable_feeds', 1);
 
 /**
  * Optimización final: Flush de output buffer
@@ -986,3 +1056,160 @@ function dbonline_flush_output() {
 }
 add_action('wp_footer', 'dbonline_flush_output', 999);
 
+/**
+ * ==========================================
+ * FASE 2: SEO AVANZADO (NIVEL TEMA)
+ * ==========================================
+ */
+
+/**
+ * 1. Generador de Sitemap XML Nativo Custom
+ * Intercepta /sitemap.xml y genera dinámicamente el listado para Google
+ */
+function dbonline_custom_sitemap() {
+    if (strpos($_SERVER['REQUEST_URI'], '/sitemap.xml') !== false) {
+        header('Content-Type: application/xml; charset=utf-8');
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        
+        // Home
+        echo '  <url>' . "\n";
+        echo '    <loc>' . esc_url(home_url('/')) . '</loc>' . "\n";
+        echo '    <changefreq>daily</changefreq>' . "\n";
+        echo '    <priority>1.0</priority>' . "\n";
+        echo '  </url>' . "\n";
+
+        // Query para todas las entradas
+        $postsForSitemap = get_posts(array(
+            'numberposts' => -1,
+            'orderby'     => 'modified',
+            'post_type'   => 'post',
+            'post_status' => 'publish'
+        ));
+
+        foreach($postsForSitemap as $post) {
+            setup_postdata($post);
+            $postdate = explode(" ", $post->post_modified);
+            echo '  <url>' . "\n";
+            echo '    <loc>' . get_permalink($post->ID) . '</loc>' . "\n";
+            echo '    <lastmod>' . $postdate[0] . '</lastmod>' . "\n";
+            echo '    <changefreq>weekly</changefreq>' . "\n";
+            echo '    <priority>0.8</priority>' . "\n";
+            echo '  </url>' . "\n";
+        }
+        
+        echo '</urlset>';
+        exit;
+    }
+}
+add_action('template_redirect', 'dbonline_custom_sitemap');
+
+/**
+ * 2. Rel="prev" y Rel="next" en paginaciones
+ * Ayuda al rastreo en listados de categorías (Link Juice)
+ */
+function dbonline_archive_pagination_links() {
+    if (is_home() || is_front_page() || is_category() || is_archive() || is_search()) {
+        global $wp_query;
+        $max_page = $wp_query->max_num_pages;
+        if (!$max_page) {
+            $max_page = 1;
+        }
+        $paged = get_query_var('paged') ? absint(get_query_var('paged')) : 1;
+        
+        if ($paged > 1) {
+            echo '<link rel="prev" href="' . esc_url(get_pagenum_link($paged - 1)) . '" />' . "\n";
+        }
+        if ($paged < $max_page) {
+            echo '<link rel="next" href="' . esc_url(get_pagenum_link($paged + 1)) . '" />' . "\n";
+        }
+    }
+}
+add_action('wp_head', 'dbonline_archive_pagination_links', 2);
+
+/**
+ * 3. Microformato E-E-A-T Adicional: Person y Organization
+ * Añade confianza de entidad corporativa / autor al index
+ */
+function dbonline_author_organization_schema() {
+    if (is_single() || is_home()) {
+        $sitename = get_bloginfo('name');
+        
+        $schema = array(
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => is_single() ? get_the_title() : $sitename,
+            'url' => is_single() ? get_permalink() : home_url(),
+            'publisher' => array(
+                '@type' => 'Organization',
+                'name' => $sitename,
+                'url' => home_url(),
+                'logo' => array(
+                    '@type' => 'ImageObject',
+                    'url' => get_site_icon_url() ? get_site_icon_url() : home_url('/wp-content/uploads/logo.png')
+                )
+            ),
+            'author' => array(
+                '@type' => 'Person',
+                'name' => 'Webmaster Dragon Ball',
+                'url' => home_url()
+            )
+        );
+        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+    }
+}
+add_action('wp_head', 'dbonline_author_organization_schema', 10);
+
+/**
+ * 4. Microformato BreadcrumbList Schema (Estructura SEO Avanzada)
+ * Ayuda a Google a entender la jerarquía del sitio para fragmentos enriquecidos
+ */
+function dbonline_add_breadcrumb_schema() {
+    if (is_front_page() || is_home()) return;
+    
+    $breadcrumbs = array(
+        array(
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Inicio',
+            'item' => home_url('/')
+        )
+    );
+    
+    $position = 2;
+    if (is_single()) {
+        $categories = get_the_category();
+        if (!empty($categories)) {
+            $breadcrumbs[] = array(
+                '@type' => 'ListItem',
+                'position' => $position,
+                'name' => $categories[0]->name,
+                'item' => get_category_link($categories[0]->term_id)
+            );
+            $position++;
+        }
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => $position,
+            'name' => get_the_title(),
+            'item' => get_permalink()
+        );
+    } elseif (is_category()) {
+        $category = get_queried_object();
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => $position,
+            'name' => $category->name,
+            'item' => get_category_link($category->term_id)
+        );
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbs
+    );
+    
+    echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+}
+add_action('wp_head', 'dbonline_add_breadcrumb_schema', 11);

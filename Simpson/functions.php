@@ -254,6 +254,25 @@ function simpsons_add_video_schema() {
         $keywords[] = 'Bart Simpson';
         $keywords[] = 'Springfield';
         
+        // Extraer URL de Embed real si es posible (MEGA, etc)
+        $video_embed_url = '';
+        if (function_exists('get_field')) {
+            $players = array(get_field('player1', $post->ID), get_field('player2', $post->ID), get_field('player3', $post->ID));
+            foreach ($players as $player) {
+                if ($player && strpos($player, 'iframe') !== false) {
+                    if (preg_match('/src="([^"]+)"/', $player, $matches)) {
+                        $video_embed_url = $matches[1];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // ABORTAR SCHEMA SI NO HAY VIDEO CLARO: Evita penalizaciones de Search Console
+        if (empty($video_embed_url)) {
+            return;
+        }
+        
         $schema = array(
             '@context' => 'https://schema.org',
             '@type' => 'VideoObject',
@@ -262,8 +281,8 @@ function simpsons_add_video_schema() {
             'thumbnailUrl' => array($thumbnail_url),
             'uploadDate' => get_the_date('c'),
             'duration' => $duration,
-            'contentUrl' => get_permalink(),
-            'embedUrl' => get_permalink(),
+            'contentUrl' => $video_embed_url,
+            'embedUrl' => $video_embed_url,
             'keywords' => implode(', ', $keywords),
             'about' => array(
                 '@type' => 'Thing',
@@ -377,10 +396,23 @@ function simpsons_add_meta_tags() {
         
         echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
         echo '<meta name="keywords" content="' . esc_attr($category->name) . ', Los Simpsons, ' . esc_attr(implode(', ', $keywords)) . '">' . "\n";
+    } elseif (is_page()) {
+        $title = get_the_title();
+        $meta_desc = 'Guía completa y lista de capítulos de Los Simpsons: ' . $title . '. Ver episodios online en español latino y alta calidad.';
+        
+        echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
+        echo '<meta name="keywords" content="' . esc_attr($title) . ', lista de capítulos, guía de episodios Simpsons, ' . esc_attr(implode(', ', array_slice($keywords, 0, 5))) . '">' . "\n";
     }
     
-    // Canonical URL - REMOVED to avoid duplication with WordPress core
-    // echo '<link rel="canonical" href="' . esc_url(get_permalink()) . '">' . "\n";
+    // Canonical URL Dinámica (restituida con condicionales para SEO)
+    if (is_singular()) {
+        echo '<link rel="canonical" href="' . esc_url(get_permalink()) . '">' . "\n";
+    } elseif (is_home() || is_front_page()) {
+        echo '<link rel="canonical" href="' . esc_url(home_url('/')) . '">' . "\n";
+    } elseif (is_category()) {
+        $category = get_queried_object();
+        echo '<link rel="canonical" href="' . esc_url(get_category_link($category->term_id)) . '">' . "\n";
+    }
 }
 add_action('wp_head', 'simpsons_add_meta_tags', 5);
 
@@ -481,4 +513,151 @@ function simpsons_fallback_menu() {
 
 // INCLUIR TODAS LAS OPTIMIZACIONES AVANZADAS
 require_once get_template_directory() . '/inc/optimizations.php';
+
+/**
+ * 1. Generador de Sitemap XML Dinámico
+ */
+function simpsons_generate_sitemap() {
+    if (get_query_var('sitemap') == 'sitemap') {
+        header('Content-Type: text/xml; charset=utf-8');
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        
+        // Inicio
+        echo '<url><loc>' . esc_url(home_url('/')) . '</loc><changefreq>daily</changefreq><priority>1.0</priority></url>' . "\n";
+        
+        $posts = get_posts(array('numberposts' => -1, 'post_type' => 'post', 'post_status' => 'publish'));
+        foreach ($posts as $post) {
+            setup_postdata($post);
+            echo '<url><loc>' . esc_url(get_permalink($post)) . '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>' . "\n";
+        }
+        wp_reset_postdata();
+        
+        echo '</urlset>';
+        exit;
+    }
+}
+add_action('template_redirect', 'simpsons_generate_sitemap');
+
+function simpsons_sitemap_rewrite_rule() {
+    add_rewrite_rule('sitemap\.xml$', 'index.php?sitemap=sitemap', 'top');
+}
+add_action('init', 'simpsons_sitemap_rewrite_rule');
+
+function simpsons_sitemap_query_vars($vars) {
+    $vars[] = 'sitemap';
+    return $vars;
+}
+add_filter('query_vars', 'simpsons_sitemap_query_vars');
+
+/**
+ * 2. Paginación link-juice (rel="prev" y rel="next")
+ */
+function simpsons_pagination_rel_links() {
+    if (is_home() || is_front_page() || is_category() || is_archive() || is_search()) {
+        global $wp_query;
+        $max_page = $wp_query->max_num_pages;
+        $current_page = max(1, get_query_var('paged'));
+
+        if ($current_page > 1) {
+            echo '<link rel="prev" href="' . esc_url(get_pagenum_link($current_page - 1)) . '">' . "\n";
+        }
+        if ($current_page < $max_page) {
+            echo '<link rel="next" href="' . esc_url(get_pagenum_link($current_page + 1)) . '">' . "\n";
+        }
+    }
+}
+add_action('wp_head', 'simpsons_pagination_rel_links', 2);
+
+/**
+ * 3. Microformato Webmaster (Person / Organization) para EEAT
+ */
+function simpsons_add_organization_schema() {
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@graph' => array(
+            array(
+                '@type' => 'Organization',
+                '@id' => home_url('/#organization'),
+                'name' => get_bloginfo('name'),
+                'url' => home_url('/'),
+                'logo' => array(
+                    '@type' => 'ImageObject',
+                    'url' => get_site_icon_url(),
+                    'width' => 512,
+                    'height' => 512
+                ),
+            ),
+            array(
+                '@type' => 'WebSite',
+                '@id' => home_url('/#website'),
+                'url' => home_url('/'),
+                'name' => get_bloginfo('name'),
+                'publisher' => array('@id' => home_url('/#organization')),
+                'potentialAction' => array(
+                    array(
+                        '@type' => 'SearchAction',
+                        'target' => home_url('/?s={search_term_string}'),
+                        'query-input' => 'required name=search_term_string'
+                    )
+                )
+            )
+        )
+    );
+    echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+}
+add_action('wp_head', 'simpsons_add_organization_schema', 1);
+
+/**
+ * 4. Microformato BreadcrumbList Schema
+ */
+function simpsons_add_breadcrumb_schema() {
+    if (is_front_page() || is_home()) return;
+    
+    $breadcrumbs = array(
+        array(
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Inicio',
+            'item' => home_url('/')
+        )
+    );
+    
+    $position = 2;
+    if (is_single()) {
+        $categories = get_the_category();
+        if (!empty($categories)) {
+            $breadcrumbs[] = array(
+                '@type' => 'ListItem',
+                'position' => $position,
+                'name' => $categories[0]->name,
+                'item' => get_category_link($categories[0]->term_id)
+            );
+            $position++;
+        }
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => $position,
+            'name' => get_the_title(),
+            'item' => get_permalink()
+        );
+    } elseif (is_category()) {
+        $category = get_queried_object();
+        $breadcrumbs[] = array(
+            '@type' => 'ListItem',
+            'position' => $position,
+            'name' => $category->name,
+            'item' => get_category_link($category->term_id)
+        );
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbs
+    );
+    
+    echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+}
+add_action('wp_head', 'simpsons_add_breadcrumb_schema', 3);
 

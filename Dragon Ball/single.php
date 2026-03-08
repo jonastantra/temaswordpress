@@ -35,7 +35,8 @@ get_header(); ?>
             </header>
             
             <!-- REPRODUCTOR DE VIDEO -->
-            <div class="video-player-section">
+            <div class="video-player-section" itemscope itemtype="https://schema.org/VideoObject" itemprop="video">
+                <meta itemprop="name" content="<?php echo esc_attr(get_the_title()); ?>" />
                 <div class="video-player-container">
                     <?php
                     // Contar vista para analytics
@@ -179,7 +180,7 @@ get_header(); ?>
                                     <a href="<?php the_permalink(); ?>">
                                         <div class="episode-thumbnail">
                                             <?php if (has_post_thumbnail()) : ?>
-                                                <?php the_post_thumbnail('episode-thumb'); ?>
+                                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Miniatura del episodio ' . get_the_title())); ?>
                                             <?php else : ?>
                                                 <div class="no-thumbnail">
                                                     <i class="fas fa-video"></i>

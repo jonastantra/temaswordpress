@@ -36,7 +36,7 @@ get_header(); ?>
             
             <!-- REPRODUCTOR DE VIDEO -->
             <div class="video-player-section">
-                <div class="video-player-container">
+                <div class="video-player-container" itemscope itemtype="https://schema.org/VideoObject" itemprop="video">
                     <?php
                     // Contar vista para analytics
                     simpsons_set_post_views(get_the_ID());
