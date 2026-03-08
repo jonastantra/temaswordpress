@@ -1,0 +1,1153 @@
+/*
+Theme Name: Simpsons Online Pro
+Theme URI: https://simpsonsonline.com
+Author: Simpsons Online Team
+Author URI: https://simpsonsonline.com
+Description: Tema personalizado optimizado para ver episodios de Los Simpsons online. Diseño moderno con excelente SEO y experiencia de usuario.
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: simpsons-online
+Tags: dark, tv-series, video, entertainment, custom-menu, featured-images, threaded-comments, translation-ready
+*/
+
+/* ============================================
+   NOTA: Este tema NO usa Tailwind CSS
+   Todos los estilos están optimizados inline
+   para máximo rendimiento
+   ============================================ */
+
+/* ============================================
+   VARIABLES BASE - LOS SIMPSONS
+   ============================================ */
+:root {
+    --color-primary: #FFD90F;
+    /* Amarillo Simpson */
+    --color-secondary: #0088CC;
+    /* Azul brillante */
+    --color-dark: #1a1a1a;
+    /* Fondo oscuro */
+    --color-dark-light: #2a2a2a;
+    /* Fondo secundario */
+    --color-dark-lighter: #3a3a3a;
+    /* Fondo terciario */
+    --color-accent: #FF6B35;
+    /* Naranja acento */
+    --color-danger: #dc2626;
+    --color-text: #ffffff;
+    --color-text-muted: #b0b0b0;
+    --transition: all 0.3s ease;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-dark);
+    color: var(--color-text);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+body.menu-open {
+    overflow: hidden;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--color-accent);
+}
+
+/* ============================================
+   HEADER - NAVEGACIÓN PRINCIPAL
+   ============================================ */
+.site-header {
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-bottom: 3px solid var(--color-primary);
+}
+
+.site-header.scrolled {
+    box-shadow: var(--shadow-md);
+}
+
+.site-header.header-hidden {
+    transform: translateY(-100%);
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.site-branding .site-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+}
+
+.site-branding .site-logo i {
+    color: var(--color-primary);
+    font-size: 2rem;
+}
+
+.site-branding .site-logo:hover {
+    color: var(--color-primary);
+}
+
+/* Menú Desktop */
+.main-navigation.desktop-menu {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .main-navigation.desktop-menu {
+        display: block;
+    }
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 0.25rem;
+    margin: 0;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.nav-menu>li {
+    position: relative;
+}
+
+.nav-menu>li>a {
+    display: block;
+    padding: 0.6rem 1rem;
+    color: var(--color-text);
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.nav-menu>li>a i {
+    margin-right: 0.35rem;
+    font-size: 0.9rem;
+}
+
+.nav-menu>li>a:hover,
+.nav-menu>li.current-menu-item>a {
+    background: var(--color-primary);
+    color: var(--color-dark);
+}
+
+/* Submenús Dropdown - CON DELAY */
+.nav-menu li ul.sub-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    background: rgba(42, 42, 42, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    padding: 0.5rem 0;
+    z-index: 9999;
+    margin-top: 0.5rem;
+    list-style: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(-10px);
+}
+
+.nav-menu li:hover>ul.sub-menu {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    animation: fadeInDown 0.3s ease;
+}
+
+.nav-menu>li::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 20px;
+    z-index: 9998;
+}
+
+.nav-menu li ul.sub-menu li {
+    width: 100%;
+}
+
+.nav-menu li ul.sub-menu li a {
+    display: block;
+    padding: 0.75rem 1.25rem;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.nav-menu li ul.sub-menu li a:hover {
+    background: var(--color-dark-lighter);
+    color: var(--color-primary);
+    padding-left: 1.5rem;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-menu li.menu-item-has-children>a::after {
+    content: '\f107';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 1200px) {
+    .nav-menu>li>a {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .nav-menu {
+        gap: 0.15rem;
+    }
+
+    .nav-menu>li>a {
+        padding: 0.5rem 0.65rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Buscador Header */
+.header-search {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .header-search {
+        display: block;
+    }
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background: var(--color-dark-light);
+    border-radius: 25px;
+    overflow: hidden;
+    border: 1px solid var(--color-dark-lighter);
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: var(--color-text);
+    outline: none;
+    width: 200px;
+}
+
+.search-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.search-submit {
+    background: var(--color-primary);
+    border: none;
+    padding: 0.5rem 1rem;
+    color: var(--color-dark);
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 600;
+}
+
+.search-submit:hover {
+    background: var(--color-secondary);
+    color: white;
+}
+
+/* Botón Menú Móvil */
+.mobile-menu-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .mobile-menu-toggle {
+        display: none;
+    }
+}
+
+.hamburger-line {
+    width: 25px;
+    height: 3px;
+    background: var(--color-primary);
+    transition: var(--transition);
+    border-radius: 2px;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Menú Móvil */
+.mobile-navigation {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: rgba(26, 26, 26, 0.98);
+    backdrop-filter: blur(10px);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    z-index: 999;
+}
+
+.mobile-navigation.active {
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    border-top: 1px solid var(--color-primary);
+}
+
+.mobile-menu {
+    list-style: none;
+    padding: 1rem;
+}
+
+.mobile-menu>li {
+    border-bottom: 1px solid var(--color-dark-lighter);
+}
+
+.mobile-menu>li:last-child {
+    border-bottom: none;
+}
+
+.mobile-menu>li>a {
+    display: block;
+    padding: 1rem;
+    color: var(--color-text);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.mobile-menu>li>a i {
+    margin-right: 0.5rem;
+    color: var(--color-primary);
+}
+
+.mobile-menu>li>a:hover,
+.mobile-menu>li.current-menu-item>a {
+    color: var(--color-primary);
+    padding-left: 1.5rem;
+}
+
+.mobile-menu li ul.sub-menu {
+    list-style: none;
+    padding-left: 0;
+    display: none;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.mobile-menu li.menu-item-has-children>a {
+    position: relative;
+}
+
+.mobile-menu li.menu-item-has-children>a::after {
+    content: '\f107';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 1rem;
+    transition: var(--transition);
+}
+
+.mobile-menu li.menu-item-has-children.submenu-open>a::after {
+    transform: rotate(180deg);
+}
+
+.mobile-menu li.menu-item-has-children.submenu-open>ul.sub-menu {
+    display: block;
+}
+
+.mobile-menu li ul.sub-menu li a {
+    display: block;
+    padding: 0.75rem 1rem 0.75rem 2rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.mobile-menu li ul.sub-menu li a:hover {
+    color: var(--color-primary);
+    padding-left: 2.5rem;
+}
+
+/* ============================================
+   CONTENIDO PRINCIPAL
+   ============================================ */
+.site-content {
+    min-height: calc(100vh - 300px);
+    padding-top: 80px;
+}
+
+/* ============================================
+   REPRODUCTOR DE VIDEO
+   ============================================ */
+.video-player-section {
+    background: var(--color-dark-light);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.video-player-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.player-tabs-wrapper {
+    width: 100%;
+}
+
+.player-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.player-tabs .tab {
+    background: var(--color-dark-lighter);
+    border: 2px solid transparent;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.player-tabs .tab:hover {
+    background: var(--color-dark);
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.player-tabs .tab.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-dark);
+    box-shadow: 0 4px 12px rgba(255, 217, 15, 0.4);
+}
+
+.player-tabs .tab i {
+    font-size: 1.1rem;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.video-embed-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background: #000;
+    border-radius: 8px;
+}
+
+.video-embed-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.no-player-message,
+.no-player-available {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--color-dark);
+    border-radius: 8px;
+}
+
+.no-player-message i,
+.no-player-available i {
+    font-size: 3rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+}
+
+.no-player-message p,
+.no-player-available p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+}
+
+/* ============================================
+   NAVEGACIÓN ENTRE EPISODIOS
+   ============================================ */
+.episode-navigation {
+    margin: 2rem 0;
+}
+
+.nav-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 640px) {
+    .nav-buttons {
+        grid-template-columns: 1fr;
+    }
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--color-dark-light);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: var(--transition);
+    color: var(--color-text);
+}
+
+.nav-button:hover {
+    background: var(--color-dark-lighter);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.nav-button i {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+}
+
+.nav-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nav-label {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.nav-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.next-episode {
+    text-align: right;
+}
+
+/* ============================================
+   CARDS DE EPISODIOS
+   ============================================ */
+.episode-card {
+    background: var(--color-dark-light);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.episode-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-lg);
+}
+
+.episode-thumbnail {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: var(--color-dark);
+}
+
+.episode-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.episode-card:hover .episode-thumbnail img {
+    transform: scale(1.1);
+}
+
+.placeholder-thumb,
+.no-thumbnail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-dark-light) 100%);
+}
+
+.placeholder-thumb i,
+.no-thumbnail i {
+    font-size: 3rem;
+    color: var(--color-text-muted);
+}
+
+.saga-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: var(--color-primary);
+    color: var(--color-dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 10;
+}
+
+.episode-info {
+    padding: 1rem;
+}
+
+.episode-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.episode-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.episode-meta i {
+    color: var(--color-primary);
+}
+
+/* ============================================
+   GRIDS DE EPISODIOS
+   ============================================ */
+.episodes-grid,
+.episodes-archive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+}
+
+@media (max-width: 640px) {
+
+    .episodes-grid,
+    .episodes-archive-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+}
+
+/* ============================================
+   PAGINACIÓN
+   ============================================ */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 3rem 0;
+    flex-wrap: wrap;
+}
+
+.pagination a,
+.pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    background: var(--color-dark-light);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    color: var(--color-text);
+    font-weight: 600;
+    transition: var(--transition);
+    min-width: 44px;
+}
+
+.pagination a:hover {
+    background: var(--color-primary);
+    color: var(--color-dark);
+    border-color: var(--color-primary);
+}
+
+.pagination .current {
+    background: var(--color-primary);
+    color: var(--color-dark);
+    border-color: var(--color-primary);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.site-footer {
+    background: var(--color-dark-light);
+    border-top: 3px solid var(--color-primary);
+    margin-top: 4rem;
+    padding: 3rem 2rem 1rem;
+}
+
+.footer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ============================================
+   MEGA MENU (Para Temporadas)
+   ============================================ */
+@media (min-width: 1024px) {
+
+    /* Estilos para convertir el menú de temporadas en un Grid */
+    .nav-menu>li.mega-menu {
+        position: static;
+    }
+
+    .nav-menu>li.mega-menu>ul.sub-menu {
+        width: 90vw;
+        max-width: 1000px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(10px);
+        display: none;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+        padding: 20px;
+        box-sizing: border-box;
+        background: rgba(26, 26, 26, 0.98);
+        border: 1px solid var(--color-primary);
+    }
+
+    .nav-menu>li.mega-menu:hover>ul.sub-menu {
+        display: grid;
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .nav-menu>li.mega-menu>ul.sub-menu>li {
+        width: auto;
+    }
+
+    .nav-menu>li.mega-menu>ul.sub-menu>li>a {
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        text-align: center;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        border: 1px solid transparent;
+    }
+
+    .nav-menu>li.mega-menu>ul.sub-menu>li>a:hover {
+        background: var(--color-primary);
+        color: var(--color-dark);
+        border-color: var(--color-primary);
+        transform: translateY(-2px);
+    }
+}
+
+.footer-widgets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-widget h3 {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.footer-widget p {
+    color: var(--color-text-muted);
+    line-height: 1.8;
+}
+
+.footer-menu {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.footer-menu li a {
+    color: var(--color-text-muted);
+    transition: var(--transition);
+}
+
+.footer-menu li a:hover {
+    color: var(--color-primary);
+    padding-left: 0.5rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--color-dark);
+    border-radius: 50%;
+    color: var(--color-text);
+    transition: var(--transition);
+}
+
+.social-link:hover {
+    background: var(--color-primary);
+    color: var(--color-dark);
+    transform: translateY(-3px);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-dark);
+}
+
+.footer-bottom p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.disclaimer {
+    font-size: 0.8rem !important;
+    font-style: italic;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.hero-section {
+    position: relative;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    padding: 4rem 2rem;
+    margin-bottom: 3rem;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+}
+
+.hero-title {
+    font-family: 'Bangers', cursive;
+    font-size: 3.5rem;
+    color: var(--color-dark);
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 0 1rem;
+    }
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: var(--color-text);
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+}
+
+.section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 2rem;
+    background: var(--color-primary);
+    margin-right: 1rem;
+    vertical-align: middle;
+}
+
+body:not(.loaded) {
+    overflow: hidden;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.breadcrumbs {
+    padding: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.breadcrumbs a {
+    color: var(--color-primary);
+}
+
+.breadcrumbs a:hover {
+    color: var(--color-accent);
+}
+
+.episode-header {
+    margin-bottom: 2rem;
+}
+
+.episode-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.episode-description {
+    background: var(--color-dark-light);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.episode-description h2 {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.episode-content {
+    color: var(--color-text-muted);
+    line-height: 1.8;
+}
+
+.related-episodes {
+    margin: 3rem 0;
+}
+
+.related-episodes h2 {
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: var(--color-text);
+    margin-bottom: 1.5rem;
+}
+
+.archive-header {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--color-dark-light);
+    border-radius: 12px;
+    margin-bottom: 3rem;
+}
+
+.archive-header h1 {
+    font-family: 'Bangers', cursive;
+    font-size: 3rem;
+    color: var(--color-text);
+    margin-bottom: 1rem;
+}
+
+.category-description {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.no-episodes {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+    grid-column: 1 / -1;
+}
+
+.error-404 {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.error-404 h1 {
+    font-family: 'Bangers', cursive;
+    font-size: 6rem;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.error-404 h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.error-404 p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: var(--color-primary);
+    color: var(--color-dark);
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    background: var(--color-secondary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
