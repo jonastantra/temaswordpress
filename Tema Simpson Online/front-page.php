@@ -1,6 +1,6 @@
 <?php
 /**
- * Front Page Template - Página de Inicio
+ * Front Page Template - Página de Inicio Los Simpsons
  */
 
 get_header(); ?>
@@ -8,13 +8,13 @@ get_header(); ?>
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="hero-content">
-        <h1 class="hero-title">Ver Dragon Ball Online - Todos los Episodios</h1>
-        <p class="hero-subtitle">Disfruta de todas las sagas: DB, DBZ, GT, Super, Kai y más</p>
+        <h1 class="hero-title">Ver Los Simpsons Online - Todas las Temporadas</h1>
+        <p class="hero-subtitle">Disfruta de todas las temporadas de Los Simpsons completas en español latino</p>
         
         <!-- Buscador Destacado -->
         <div style="max-width: 600px; margin: 0 auto;">
             <form role="search" method="get" class="search-form" action="<?php echo home_url('/'); ?>" style="background: white; border-radius: 50px; padding: 0.5rem; display: flex; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
-                <input type="search" class="search-input" placeholder="Buscar episodios de Dragon Ball..." name="s" value="<?php echo get_search_query(); ?>" style="flex: 1; color: #0f0f0f; font-size: 1rem;">
+                <input type="search" class="search-input" placeholder="Buscar capítulos de Los Simpsons..." name="s" value="<?php echo get_search_query(); ?>" style="flex: 1; color: #1a1a1a; font-size: 1rem;">
                 <button type="submit" class="search-submit" style="border-radius: 50px; padding: 0.75rem 2rem; font-weight: 600;">
                     <i class="fas fa-search"></i> Buscar
                 </button>
@@ -23,9 +23,9 @@ get_header(); ?>
     </div>
 </section>
 
-<!-- Episodios Destacados/Recientes -->
+<!-- Episodios Recientes -->
 <section class="container" style="margin-bottom: 4rem;">
-    <h2 class="section-title">Episodios Recientes</h2>
+    <h2 class="section-title">Capítulos Recientes</h2>
     
     <div class="episodes-grid">
         <?php
@@ -42,7 +42,7 @@ get_header(); ?>
                     <a href="<?php the_permalink(); ?>">
                         <div class="episode-thumbnail">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Episodio ' . get_the_title())); ?>
+                                <?php the_post_thumbnail('episode-thumb'); ?>
                             <?php else : ?>
                                 <div class="placeholder-thumb">
                                     <i class="fas fa-video"></i>
@@ -78,11 +78,40 @@ get_header(); ?>
     </div>
 </section>
 
-
+<!-- Navegación por Temporadas -->
+<section class="container" style="margin-bottom: 4rem;">
+    <h2 class="section-title">Explorar por Temporadas</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <?php
+        $temporadas = get_categories(array(
+            'orderby' => 'name',
+            'order' => 'ASC',
+            'hide_empty' => true
+        ));
+        
+        foreach ($temporadas as $temporada) :
+            ?>
+            <a href="<?php echo get_category_link($temporada->term_id); ?>" class="episode-card" style="text-align: center; padding: 2rem 1rem;">
+                <div style="font-size: 3rem; color: var(--color-primary); margin-bottom: 1rem;">
+                    <i class="fas fa-tv"></i>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text);">
+                    <?php echo esc_html($temporada->name); ?>
+                </h3>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;">
+                    <?php echo $temporada->count; ?> capítulos disponibles
+                </p>
+            </a>
+            <?php
+        endforeach;
+        ?>
+    </div>
+</section>
 
 <!-- Listado Completo de Episodios -->
 <section class="container" style="margin-bottom: 4rem;">
-    <h2 class="section-title">Todos los Episodios</h2>
+    <h2 class="section-title">Todos los Capítulos</h2>
     
     <div class="episodes-grid">
         <?php
@@ -90,10 +119,7 @@ get_header(); ?>
             'posts_per_page' => 24,
             'paged' => get_query_var('paged') ? get_query_var('paged') : 1,
             'orderby' => 'date',
-            'order' => 'DESC',
-            'no_found_rows' => true, // Optimización crítica: Evita el conteo total en SQL reduciendo la RAM
-            'update_post_meta_cache' => false, // Evita cargar meta-data innecesaria al index principal
-            'update_post_term_cache' => false // Evita cacheado de terminos en cada card
+            'order' => 'DESC'
         ));
         
         if ($all_episodes->have_posts()) :
@@ -103,7 +129,7 @@ get_header(); ?>
                     <a href="<?php the_permalink(); ?>">
                         <div class="episode-thumbnail">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Ver episodio ' . get_the_title())); ?>
+                                <?php the_post_thumbnail('episode-thumb'); ?>
                             <?php else : ?>
                                 <div class="placeholder-thumb">
                                     <i class="fas fa-video"></i>

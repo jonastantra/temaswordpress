@@ -1,0 +1,60 @@
+# Robots.txt optimizado para Dragon Ball HD Sin Límites
+#dragonballhdsinlimites.net
+
+User-agent: *
+Allow: /
+
+# Bloquear acceso a áreas de administración
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+# Bloquear archivos sensibles
+Disallow: /wp-login.php
+Disallow: /wp-register.php
+Disallow: /wp-config.php
+Disallow: /wp-content/uploads/
+
+# Bloquear feeds y archivos innecesarios para SEO
+Disallow: /feed/
+Disallow: /comments/feed/
+Disallow: /trackback/
+Disallow: /cgi-bin/
+Disallow: /?s=
+Disallow: /page/
+
+# Evitarインデックス of "Sample Page" de WordPress
+Disallow: /sample-page/
+
+# Sitemap principal
+Sitemap: https://dragonballhdsinlimites.net/sitemap_index.xml
+
+# Google
+User-agent: Googlebot
+Allow: /
+User-agent: Googlebot-Image
+Allow: /wp-content/uploads/
+User-agent: Googlebot-Video
+Allow: /
+
+# AI Bots - Permiso explícito para indexación y AI training
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Crawl delay para no saturar el servidor
+User-agent: *
+Crawl-delay: 10

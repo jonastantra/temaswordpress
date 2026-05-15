@@ -179,8 +179,12 @@ get_header(); ?>
                                 <article class="episode-card">
                                     <a href="<?php the_permalink(); ?>">
                                         <div class="episode-thumbnail">
-                                            <?php if (has_post_thumbnail()) : ?>
-                                                <?php the_post_thumbnail('episode-thumb', array('alt' => 'Miniatura del episodio ' . get_the_title())); ?>
+                                            <?php 
+                                            $categories = get_the_category();
+                                            $series_name = !empty($categories) ? $categories[0]->name : 'Dragon Ball';
+                                            $alt_text = $series_name . ' - ' . get_the_title();
+                                            if (has_post_thumbnail()) : ?>
+                                                <?php the_post_thumbnail('episode-thumb', array('alt' => esc_attr($alt_text), 'loading' => 'lazy')); ?>
                                             <?php else : ?>
                                                 <div class="no-thumbnail">
                                                     <i class="fas fa-video"></i>

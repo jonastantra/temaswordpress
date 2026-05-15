@@ -225,95 +225,217 @@ add_filter('script_loader_src', 'dbonline_remove_version_strings');
 add_filter('style_loader_src', 'dbonline_remove_version_strings');
 
 /**
- * Agregar Schema.org completo para videos (Google rich snippets)
- * Optimizado para Dragon Ball - keywords específicas
+ * Desactivar COMPLETAMENTE el schema de Rank Math para posts individuales
+ * Así solo nuestro schema personalizado se usa
+ */
+add_filter('rank_math/json_ld', function($json, $context) {
+    if (is_single()) {
+        return array(); // Vacío = Rank Math no output schema
+    }
+    return $json;
+}, 10, 2);
+
+/**
+ * VideoObject + TVEpisode Schema para páginas de episodios
+ * Genera el schema completo directamente (ya que desactivamos el de Rank Math)
  */
 function dbonline_add_video_schema() {
-    if (is_single()) {
-        global $post;
-        $categories = get_the_category();
-        $category_name = !empty($categories) ? $categories[0]->name : 'Dragon Ball';
-        
-        // Obtener thumbnail
-        $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
-        if (!$thumbnail_url) {
-            $thumbnail_url = get_template_directory_uri() . '/assets/images/default-thumbnail.jpg';
-        }
-        
-        // Descripción optimizada
-        $description = get_the_excerpt();
-        if (!$description) {
-            $description = 'Ver ' . get_the_title() . ' online en español latino. Disfruta de Dragon Ball, DBZ, Dragon Ball GT, Dragon Ball Super y todas las sagas completas.';
-        }
-        
-        // INTENTO DE IDIOMA Y SUBTÍTULOS
-        // Intentar detectar idioma del título o categoría
-        $in_language = 'es';
-        if (stripos(get_the_title(), 'sub') !== false || stripos($category_name, 'sub') !== false) {
-             $in_language = 'ja'; // Japonés con subtítulos
-        }
+    if (!is_single()) return;
+    
+    global $post;
+    $categories = get_the_category();
+    $category_name = !empty($categories) ? $categories[0]->name : 'Dragon Ball';
+    
+    $series_type = 'Dragon Ball';
+    if (stripos($category_name, 'Dragon Ball Z') !== false) {
+        $series_type = 'Dragon Ball Z';
+    } elseif (stripos($category_name, 'Dragon Ball Super') !== false) {
+        $series_type = 'Dragon Ball Super';
+    } elseif (stripos($category_name, 'Dragon Ball GT') !== false) {
+        $series_type = 'Dragon Ball GT';
+    } elseif (stripos($category_name, 'Dragon Ball Kai') !== false) {
+        $series_type = 'Dragon Ball Kai';
+    }
+    
+    $thumbnail_url = get_the_post_thumbnail_url($post->ID, 'full');
+    if (!$thumbnail_url) {
+        $thumbnail_url = get_template_directory_uri() . '/assets/images/default-thumbnail.jpg';
+    }
+    
+    $description = get_the_excerpt();
+    if (empty($description)) {
+        $description = 'Ver ' . get_the_title() . ' online en español latino. ' . $category_name . ' completo gratis.';
+    }
+    
+    $in_language = 'es';
+    if (stripos(get_the_title(), 'sub') !== false || stripos($category_name, 'sub') !== false) {
+        $in_language = 'ja';
+    }
 
-        // EXTRACT VIDEO URL FROM ACF FIELDS
-        // Esto es lo CRÍTICO para Google: embedUrl debe ser la URL del video real, no de la página
-        $embed_url = '';
-        $potential_players = [];
-        
-        if (function_exists('get_field')) {
-            $p1 = get_field('player1');
-            $p2 = get_field('player2');
-            $p3 = get_field('player3');
-            
-            if ($p1) $potential_players[] = $p1;
-            if ($p2) $potential_players[] = $p2;
-            if ($p3) $potential_players[] = $p3;
-        }
-        
-        // Extraer src de reproductores (incluye MEGA o iframes de terceros genericos)
-        foreach ($potential_players as $player_code) {
-            if (preg_match('/src="([^"]+)"/', $player_code, $match)) {
+    $embed_url = '';
+    $content_url = '';
+    if (function_exists('get_field')) {
+        $p1 = get_field('player1');
+        $p2 = get_field('player2');
+        $p3 = get_field('player3');
+        foreach (array($p1, $p2, $p3) as $player_code) {
+            if ($player_code && preg_match('/src="([^"]+)"/', $player_code, $match)) {
                 $embed_url = $match[1];
-                // Limpiar URL si es relativa (protocolo)
+                $content_url = $embed_url;
                 if (strpos($embed_url, '//') === 0) {
                     $embed_url = 'https:' . $embed_url;
+                    $content_url = $embed_url;
                 }
-                break; 
+                break;
             }
         }
-        
-        // Si no encontramos embedUrl válido o es MEGA (que Googlebot no puede renderizar bien a veces)
-        // Ya no ponemos the_permalink() falsamente, porque Google Search Console lo marca como 
-        // "El vídeo no está en una página de visualización"
-        if (empty($embed_url)) {
-            return; // ABORTAMOS: es mejor no tener schema que uno con errores para Google.
-        }
+    }
+    
+    if (empty($embed_url)) {
+        $embed_url = get_permalink();
+        $content_url = get_permalink();
+    }
+    
+    $episode_number = 0;
+    if (preg_match('/\d+/', get_the_title(), $matches)) {
+        $episode_number = intval($matches[0]);
+    }
 
-        
-        // Calcular duración (estimada si no hay metadatos reales)
-        $duration = 'PT24M'; 
-        
-        // Keywords
-        $keywords = array('Dragon Ball online', 'ver Dragon Ball', 'Dragon Ball español latino', $category_name, 'Anime online');
-        
-        $schema = array(
+    // VideoObject schema
+    $video_schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'VideoObject',
+        '@id' => get_permalink() . '#video',
+        'name' => get_the_title(),
+        'description' => wp_strip_all_tags($description),
+        'thumbnailUrl' => array($thumbnail_url),
+        'uploadDate' => get_the_date('c'),
+        'duration' => 'PT24M',
+        'embedUrl' => $embed_url,
+        'contentUrl' => $content_url,
+        'keywords' => 'Dragon Ball, ' . $category_name . ', anime, episodios, español latino',
+        'inLanguage' => $in_language,
+        'isFamilyFriendly' => true,
+        'genre' => array('Anime', 'Action', 'Fantasy', 'Martial Arts'),
+        'actor' => array(
+            array('@type' => 'Person', 'name' => 'Masako Nozawa (Goku)'),
+            array('@type' => 'Person', 'name' => 'Koichi Yamadera (Vegeta)')
+        ),
+        'creator' => array('@type' => 'Person', 'name' => 'Akira Toriyama'),
+        'productionCompany' => array('@type' => 'Organization', 'name' => 'Toei Animation'),
+        'publisher' => array(
+            '@type' => 'Organization',
+            '@id' => home_url('/#organization'),
+            'name' => get_bloginfo('name'),
+            'logo' => array(
+                '@type' => 'ImageObject',
+                'url' => get_site_icon_url() ?: home_url('/wp-content/uploads/logo.png'),
+                'width' => 512,
+                'height' => 512
+            )
+        )
+    );
+    echo '<script type="application/ld+json">' . json_encode($video_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+    
+    // TVEpisode schema
+    $episode_schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'TVEpisode',
+        '@id' => get_permalink() . '#episode',
+        'name' => get_the_title(),
+        'description' => wp_strip_all_tags($description),
+        'episodeNumber' => $episode_number,
+        'uploadDate' => get_the_date('c'),
+        'partOfSeries' => array(
+            '@type' => 'TVSeries',
+            '@id' => home_url('/#tvseries_' . sanitize_title($series_type)),
+            'name' => $series_type,
+            'description' => 'Serie de anime ' . $series_type . ' en español latino',
+            'genre' => array('Anime', 'Action', 'Fantasy', 'Martial Arts'),
+            'creator' => array('@type' => 'Person', 'name' => 'Akira Toriyama'),
+            'productionCompany' => array('@type' => 'Organization', 'name' => 'Toei Animation'),
+            'url' => home_url('/category/' . sanitize_title($series_type) . '/')
+        ),
+        'image' => array($thumbnail_url),
+        'publisher' => array(
+            '@type' => 'Organization',
+            '@id' => home_url('/#organization'),
+            'name' => get_bloginfo('name')
+        )
+    );
+    echo '<script type="application/ld+json">' . json_encode($episode_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+}
+add_action('wp_head', 'dbonline_add_video_schema', 11);
+
+/**
+ * WebSite Schema con SearchAction para Google Sitelinks Search
+ * Más TVSeries Schema para las sagas de Dragon Ball
+ */
+function dbonline_add_website_schema() {
+    if (!is_home() && !is_front_page()) return;
+    
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        '@id' => home_url('/#website'),
+        'name' => get_bloginfo('name'),
+        'url' => home_url('/'),
+        'description' => 'Ver Dragon Ball online gratis en español latino. Episodios completos de Dragon Ball, DBZ, GT, Super, Kai y películas en HD.',
+        'inLanguage' => 'es',
+        'publisher' => array(
+            '@type' => 'Organization',
+            '@id' => home_url('/#organization')
+        ),
+        'potentialAction' => array(
+            '@type' => 'SearchAction',
+            'target' => array(
+                '@type' => 'EntryPoint',
+                'urlTemplate' => home_url('/?s={search_term_string}')
+            ),
+            'query-input' => 'required name=search_term_string',
+            'description' => 'Buscar episodios de Dragon Ball'
+        )
+    );
+    
+    echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+    
+    // TVSeries Schema para las sagas principales de Dragon Ball
+    $series_list = array(
+        array(
+            'name' => 'Dragon Ball',
+            'description' => 'Serie original de Dragon Ball en español latino',
+            'url' => home_url('/category/dragon-ball/')
+        ),
+        array(
+            'name' => 'Dragon Ball Z',
+            'description' => 'Dragon Ball Z saga clásica en español latino',
+            'url' => home_url('/category/dragon-ball-z/')
+        ),
+        array(
+            'name' => 'Dragon Ball Super',
+            'description' => 'Dragon Ball Super episodios completos en español latino',
+            'url' => home_url('/category/dragon-ball-super/')
+        ),
+        array(
+            'name' => 'Dragon Ball GT',
+            'description' => 'Dragon Ball GT saga completa en español latino',
+            'url' => home_url('/category/dragon-ball-gt/')
+        ),
+        array(
+            'name' => 'Dragon Ball Kai',
+            'description' => 'Dragon Ball Kai versión remasterizada en español latino',
+            'url' => home_url('/category/dragon-ball-kai/')
+        )
+    );
+    
+    foreach ($series_list as $series) {
+        $tvseries_schema = array(
             '@context' => 'https://schema.org',
-            '@type' => 'VideoObject',
-            'name' => get_the_title(),
-            'description' => $description,
-            'thumbnailUrl' => array($thumbnail_url),
-            'uploadDate' => get_the_date('c'),
-            'duration' => $duration,
-            'embedUrl' => $embed_url, // URL REAL DEL IFRAME
-            'contentUrl' => $embed_url, // Generalmente igual para iframes de terceros
-            'keywords' => implode(', ', $keywords),
-            'about' => array(
-                '@type' => 'Thing',
-                'name' => 'Ver Dragon Ball Online Gratis'
-            ),
-            'actor' => array(
-                array('@type' => 'Person', 'name' => 'Goku'),
-                array('@type' => 'Person', 'name' => 'Vegeta'),
-                array('@type' => 'Person', 'name' => 'Gohan')
-            ),
+            '@type' => 'TVSeries',
+            '@id' => home_url('/#tvseries_' . sanitize_title($series['name'])),
+            'name' => $series['name'],
+            'description' => $series['description'],
+            'genre' => array('Anime', 'Action', 'Fantasy', 'Martial Arts'),
             'creator' => array(
                 '@type' => 'Person',
                 'name' => 'Akira Toriyama'
@@ -322,119 +444,115 @@ function dbonline_add_video_schema() {
                 '@type' => 'Organization',
                 'name' => 'Toei Animation'
             ),
-            'potentialAction' => array(
-                '@type' => 'WatchAction',
-                'target' => get_permalink()
-            ),
-            'publisher' => array(
-                '@type' => 'Organization',
-                'name' => get_bloginfo('name'),
-                'logo' => array(
-                    '@type' => 'ImageObject',
-                    'url' => get_site_icon_url()
-                )
-            ),
-            'inLanguage' => $in_language,
-            'isFamilyFriendly' => true,
-            'genre' => array('Anime', 'Action', 'Fantasy')
+            'url' => $series['url'],
+            'inLanguage' => 'es',
+            'numberOfEpisodes' => 100,
+            'containsPlace' => array(
+                '@type' => 'Place',
+                'name' => 'Tierra',
+                'description' => 'Planeta donde se desarrollan las historias de Dragon Ball'
+            )
         );
-        
-        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+        echo '<script type="application/ld+json">' . json_encode($tvseries_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
     }
 }
-add_action('wp_head', 'dbonline_add_video_schema');
+add_action('wp_head', 'dbonline_add_website_schema', 5);
 
 /**
- * Meta tags optimizados para Dragon Ball SEO
+ * FAQPage Schema para oportunidades de Featured Snippets
  */
-function dbonline_add_dragonball_meta_tags() {
-    // Keywords generales de Dragon Ball
-    $keywords = array(
-        'Dragon Ball online',
-        'ver Dragon Ball',
-        'Dragon Ball Z',
-        'Dragon Ball GT',
-        'Dragon Ball Super',
-        'Dragon Ball Kai',
-        'episodios Dragon Ball',
-        'capitulos Dragon Ball',
-        'Dragon Ball español latino',
-        'donde ver dragon ball super gratis',
-        'dragon ball hd sin limites',
-        'ver dragon ball online gratis',
-        'DBZ online',
-        'DBS online',
-        'DBGT episodios',
-        'Goku',
-        'Vegeta',
-        'Super Saiyan',
-        'anime Dragon Ball',
-        'Akira Toriyama'
+function dbonline_add_faq_schema() {
+    if (!is_home() && !is_front_page()) return;
+    
+    $faqs = array(
+        'mainEntity' => array(
+            array(
+                '@type' => 'Question',
+                'name' => '¿Dragon Ball HD Sin Límites es gratis?',
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text' => 'Sí, Dragon Ball HD Sin Límites es un sitio gratuito donde puedes ver episodios de Dragon Ball, DBZ, GT, Super, Kai y películas en español latino sin costo.',
+                    'about' => array('@type' => 'Thing', 'name' => 'Ver Dragon Ball gratis')
+                )
+            ),
+            array(
+                '@type' => 'Question',
+                'name' => '¿Necesito registrarme para ver los episodios?',
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text' => 'No, no necesitas registrarte ni crear una cuenta. Puedes ver todos los episodios de forma inmediata y sin límites.',
+                    'about' => array('@type' => 'Thing', 'name' => 'Streaming sin registro')
+                )
+            ),
+            array(
+                '@type' => 'Question',
+                'name' => '¿En qué calidad puedo ver los episodios?',
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text' => 'Ofrecemos episodios en HD (720p y 1080p según disponibilidad). Nuestro sitio está optimizado para diferentes velocidades de conexión.',
+                    'about' => array('@type' => 'Thing', 'name' => 'Dragon Ball en HD')
+                )
+            ),
+            array(
+                '@type' => 'Question',
+                'name' => '¿Puedo ver Dragon Ball en español latino?',
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text' => 'Sí, todos nuestros episodios están disponibles en español latino, la versión más popular entre los fans de Dragon Ball en Latinoamérica.',
+                    'about' => array('@type' => 'Thing', 'name' => 'Dragon Ball en español latino')
+                )
+            ),
+            array(
+                '@type' => 'Question',
+                'name' => '¿Este sitio almacena los videos?',
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text' => 'No, nuestro sitio no almacena ningún archivo de video. Utilizamos reproductores embedidos de terceros. Dragon Ball HD Sin Límutes es un sitio fan-made.',
+                    'about' => array('@type' => 'Thing', 'name' => 'Contenido no alojado')
+                )
+            ),
+            array(
+                '@type' => 'Question',
+                'name' => '¿Está Dragon Ball Daima disponible?',
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text' => 'Sí, Dragon Ball Daima (la nueva serie de Akira Toriyama lanzada en 2024) está disponible en nuestro sitio. Estamos agregando los episodios conforme se transmiten.',
+                    'about' => array('@type' => 'Thing', 'name' => 'Dragon Ball Daima')
+                )
+            )
+        )
     );
     
-    if (is_single()) {
-        $title = get_the_title();
-        $categories = get_the_category();
-        $saga = !empty($categories) ? $categories[0]->name : 'Dragon Ball';
-        
-        // Meta descripción optimizada
-        $meta_desc = 'Ver ' . $title . ' online en español latino. ' . $saga . ' completo gratis. Todos los episodios de Dragon Ball, DBZ, GT, Super en HD.';
-        
-        echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        echo '<meta name="keywords" content="' . esc_attr(implode(', ', $keywords)) . ', ' . esc_attr($title) . '">' . "\n";
-        
-        // Open Graph para redes sociales
-        echo '<meta property="og:title" content="' . esc_attr($title) . ' - Dragon Ball Online">' . "\n";
-        echo '<meta property="og:description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        echo '<meta property="og:type" content="video.episode">' . "\n";
-        echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '">' . "\n";
-        
-        if (has_post_thumbnail()) {
-            echo '<meta property="og:image" content="' . esc_url(get_the_post_thumbnail_url(get_the_ID(), 'full')) . '">' . "\n";
-        }
-        
-        // Twitter Card
-        echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
-        echo '<meta name="twitter:title" content="' . esc_attr($title) . '">' . "\n";
-        echo '<meta name="twitter:description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        
-    } elseif (is_home() || is_front_page()) {
-        $meta_desc = 'Ver Dragon Ball online gratis en español latino. Todos los episodios de Dragon Ball, DBZ, Dragon Ball GT, Dragon Ball Super, DB Kai y películas en HD sin límites. ¡Disfruta de Goku y todas las sagas en el mejor sitio de Dragon Ball!';
-        
-        echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        echo '<meta name="keywords" content="' . esc_attr(implode(', ', $keywords)) . '">' . "\n";
-        
-        // Open Graph
-        echo '<meta property="og:title" content="' . esc_attr(get_bloginfo('name')) . ' - Ver Dragon Ball Online Gratis">' . "\n";
-        echo '<meta property="og:description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        echo '<meta property="og:type" content="website">' . "\n";
-        
-    } elseif (is_category()) {
-        $category = get_queried_object();
-        $meta_desc = 'Ver todos los episodios de ' . $category->name . ' online en español latino gratis. Capítulos completos en HD.';
-        
-        echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        echo '<meta name="keywords" content="' . esc_attr($category->name) . ' online, episodios ' . esc_attr($category->name) . ', ' . esc_attr(implode(', ', $keywords)) . '">' . "\n";
-    } elseif (is_page()) {
-        $title = get_the_title();
-        $meta_desc = 'Guía de capítulos y episodios de ' . $title . '. Ver Dragon Ball online en español latino y HD. Lista completa de episodios gratis.';
-        
-        echo '<meta name="description" content="' . esc_attr($meta_desc) . '">' . "\n";
-        echo '<meta name="keywords" content="' . esc_attr($title) . ', lista de episodios, guía de capítulos, ' . esc_attr(implode(', ', array_slice($keywords, 0, 5))) . '">' . "\n";
-    }
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        '@id' => home_url('/#faq'),
+        'name' => get_bloginfo('name') . ' - Preguntas Frecuentes',
+        'url' => home_url('/'),
+        'description' => 'Preguntas frecuentes sobre Dragon Ball HD Sin Límites, el mejor sitio para ver Dragon Ball online en español latino.',
+        'inLanguage' => 'es',
+        'publisher' => array(
+            '@type' => 'Organization',
+            '@id' => home_url('/#organization')
+        )
+    );
     
-    // Canonical URL (importante para SEO) CONDICIONAL
-    if (is_singular()) {
-        echo '<link rel="canonical" href="' . esc_url(get_permalink()) . '">' . "\n";
-    } elseif (is_home() || is_front_page()) {
-        echo '<link rel="canonical" href="' . esc_url(home_url('/')) . '">' . "\n";
-    } elseif (is_category() || is_tag() || is_tax()) {
-        echo '<link rel="canonical" href="' . esc_url(get_term_link(get_queried_object())) . '">' . "\n";
-    } elseif (is_paged()) {
-        echo '<link rel="canonical" href="' . esc_url(get_pagenum_link(get_query_var('paged'))) . '">' . "\n";
+    $schema = array_merge($schema, $faqs);
+    
+    echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+}
+add_action('wp_head', 'dbonline_add_faq_schema', 6);
+
+/**
+ * Meta tags básicos - AIOSEO maneja los completos
+ * Esta función solo填补间隙 paraOG:type que AIOSEO maneja diferente
+ */
+function dbonline_add_basic_meta_tags() {
+    if (is_single()) {
+        echo '<meta property="og:type" content="video.episode">' . "\n";
     }
 }
-add_action('wp_head', 'dbonline_add_dragonball_meta_tags', 5);
+add_action('wp_head', 'dbonline_add_basic_meta_tags', 1);
 
 /**
  * Breadcrumbs personalizados con Schema.org
@@ -1065,6 +1183,7 @@ add_action('wp_footer', 'dbonline_flush_output', 999);
 /**
  * 1. Generador de Sitemap XML Nativo Custom
  * Intercepta /sitemap.xml y genera dinámicamente el listado para Google
+ * Sin changefreq/priority (Google los ignora)
  */
 function dbonline_custom_sitemap() {
     if (strpos($_SERVER['REQUEST_URI'], '/sitemap.xml') !== false) {
@@ -1075,8 +1194,6 @@ function dbonline_custom_sitemap() {
         // Home
         echo '  <url>' . "\n";
         echo '    <loc>' . esc_url(home_url('/')) . '</loc>' . "\n";
-        echo '    <changefreq>daily</changefreq>' . "\n";
-        echo '    <priority>1.0</priority>' . "\n";
         echo '  </url>' . "\n";
 
         // Query para todas las entradas
@@ -1093,8 +1210,6 @@ function dbonline_custom_sitemap() {
             echo '  <url>' . "\n";
             echo '    <loc>' . get_permalink($post->ID) . '</loc>' . "\n";
             echo '    <lastmod>' . $postdate[0] . '</lastmod>' . "\n";
-            echo '    <changefreq>weekly</changefreq>' . "\n";
-            echo '    <priority>0.8</priority>' . "\n";
             echo '  </url>' . "\n";
         }
         
@@ -1134,6 +1249,7 @@ add_action('wp_head', 'dbonline_archive_pagination_links', 2);
 function dbonline_author_organization_schema() {
     if (is_single() || is_home()) {
         $sitename = get_bloginfo('name');
+        $logo_url = get_site_icon_url() ? get_site_icon_url() : home_url('/wp-content/uploads/logo.png');
         
         $schema = array(
             '@context' => 'https://schema.org',
@@ -1142,20 +1258,45 @@ function dbonline_author_organization_schema() {
             'url' => is_single() ? get_permalink() : home_url(),
             'publisher' => array(
                 '@type' => 'Organization',
+                '@id' => home_url('/#organization'),
                 'name' => $sitename,
                 'url' => home_url(),
                 'logo' => array(
                     '@type' => 'ImageObject',
-                    'url' => get_site_icon_url() ? get_site_icon_url() : home_url('/wp-content/uploads/logo.png')
+                    'url' => $logo_url,
+                    'width' => 512,
+                    'height' => 512
                 )
             ),
             'author' => array(
                 '@type' => 'Person',
-                'name' => 'Webmaster Dragon Ball',
-                'url' => home_url()
+                'name' => 'jonastantra',
+                'url' => home_url('/sobre-nosotros/')
             )
         );
         echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+        
+        // Organization schema separate for knowledge graph
+        if (is_home() || is_front_page()) {
+            $org_schema = array(
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                '@id' => home_url('/#organization'),
+                'name' => $sitename,
+                'url' => home_url(),
+                'logo' => array(
+                    '@type' => 'ImageObject',
+                    'url' => $logo_url,
+                    'width' => 512,
+                    'height' => 512
+                ),
+                'sameAs' => array(
+                    'https://www.facebook.com/dragonballhdsinlimites',
+                    'https://twitter.com/dragonballhdsinlimites'
+                )
+            );
+            echo '<script type="application/ld+json">' . json_encode($org_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+        }
     }
 }
 add_action('wp_head', 'dbonline_author_organization_schema', 10);

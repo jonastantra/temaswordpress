@@ -1,0 +1,102 @@
+DESCRIPCIÓN PARA SCREENSHOT.PNG DEL TEMA
+=========================================
+
+Para completar la instalación del tema "DB Online Pro", necesitas crear una imagen 
+screenshot.png con las siguientes especificaciones:
+
+ESPECIFICACIONES TÉCNICAS:
+- Dimensiones: 1200px × 900px (ratio 4:3)
+- Formato: PNG
+- Nombre del archivo: screenshot.png
+- Ubicación: Raíz del tema (mismo nivel que style.css)
+
+CONTENIDO VISUAL RECOMENDADO:
+El screenshot debe mostrar una captura representativa del diseño del tema:
+
+1. FONDO:
+   - Color oscuro (#0f0f0f) con degradado sutil
+   - Puede incluir elementos sutiles de Dragon Ball (dragones, esferas del dragón)
+
+2. ELEMENTOS PRINCIPALES A INCLUIR:
+   - Header con el logo "Dragon Ball Online" y menú de navegación
+   - Hero section con título destacado
+   - Grid de 6-8 cards de episodios con thumbnails
+   - Estilo moderno oscuro (dark theme)
+   - Colores principales: Naranja (#ff6b1a) y Azul (#0066cc)
+
+3. ESTILO VISUAL:
+   - Diseño moderno y limpio
+   - Cards con bordes redondeados
+   - Efectos de sombra (box-shadow)
+   - Badges de categorías en las cards
+   - Iconos de Font Awesome
+   - Tipografía: Bangers (títulos) y Poppins (cuerpo)
+
+4. TEXTO VISIBLE (sugerido):
+   - "Dragon Ball Online" (logo principal)
+   - "Ver Dragon Ball Online - Todos los Episodios"
+   - Nombres de episodios ficticios en las cards
+   - Nombres de sagas (DB, DBZ, GT, Super, etc.)
+
+HERRAMIENTAS PARA CREAR EL SCREENSHOT:
+----------------------------------------
+
+Opción 1 - Tomar captura del tema en funcionamiento:
+   1. Instala el tema en WordPress
+   2. Configura algunos posts de ejemplo
+   3. Visita la página de inicio
+   4. Toma una captura de pantalla (1200×900px)
+   5. Guarda como screenshot.png
+
+Opción 2 - Diseñar en editor gráfico:
+   Puedes usar:
+   - Figma (https://figma.com) - GRATIS
+   - Canva (https://canva.com) - GRATIS
+   - Photoshop
+   - GIMP (https://gimp.org) - GRATIS
+
+Opción 3 - Usar herramienta de mockup:
+   - Visita https://wordpress.org/themes/
+   - Observa ejemplos de screenshots de otros temas
+   - Crea uno similar adaptado al estilo Dragon Ball
+
+EJEMPLO DE LAYOUT PARA EL SCREENSHOT:
+--------------------------------------
+
++----------------------------------------------------------+
+|  HEADER: [🐉 Dragon Ball Online] [Menu] [🔍 Search]     |
++----------------------------------------------------------+
+|                                                          |
+|           Ver Dragon Ball Online                        |
+|        Todos los Episodios de Todas las Sagas           |
+|               [Buscador destacado]                       |
+|                                                          |
++----------------------------------------------------------+
+|  [Card 1]  [Card 2]  [Card 3]  [Card 4]                |
+|  EP 001    EP 002    EP 003    EP 004                   |
+|  DBZ       DBZ       DB GT     DB Super                 |
+|                                                          |
+|  [Card 5]  [Card 6]  [Card 7]  [Card 8]                |
+|  EP 005    EP 006    EP 007    EP 008                   |
+|  DB Kai    Películas DB        DBZ                      |
++----------------------------------------------------------+
+
+COLORES A UTILIZAR:
+-------------------
+- Fondo oscuro: #0f0f0f
+- Fondo secundario: #1a1a1a
+- Primario (naranja): #ff6b1a
+- Secundario (azul): #0066cc
+- Acento (dorado): #ffd700
+- Texto: #ffffff
+- Texto secundario: #a0a0a0
+
+IMPORTANTE:
+-----------
+El screenshot es la primera impresión del tema en el panel de WordPress.
+Debe ser atractivo, profesional y representar fielmente el diseño del tema.
+
+Si no puedes crear el screenshot ahora, puedes usar temporalmente una 
+imagen placeholder con el texto "Dragon Ball Online Theme" sobre fondo 
+naranja/azul degradado.
+

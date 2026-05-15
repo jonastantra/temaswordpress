@@ -1,0 +1,46 @@
+# Dragon Ball HD Sin Límites
+
+## Descripción del Sitio
+
+Portal fan-made para ver Dragon Ball, Dragon Ball Z, Dragon Ball GT, Dragon Ball Super, Dragon Ball Kai y películas en español latino y subtitulado. Todos los episodios completos en HD gratis.
+
+## Estructura del Sitio
+
+### Categorías Principales
+- https://dragonballhdsinlimites.net/category/dragon-ball-super-latino/ - Dragon Ball Super en audio latino
+- https://dragonballhdsinlimites.net/category/dragon-ball-super-sub/ - Dragon Ball Super subtitulado
+- https://dragonballhdsinlimites.net/category/dragon-ball-z/ - Dragon Ball Z
+- https://dragonballhdsinlimites.net/category/dragon-ball/ - Serie original
+- https://dragonballhdsinlimites.net/category/dragon-ball-gt/ - Dragon Ball GT
+- https://dragonballhdsinlimites.net/category/dragon-ball-kai/ - Dragon Ball Kai
+
+### Páginas Legales
+- https://dragonballhdsinlimites.net/politica-de-privacidad/
+- https://dragonballhdsinlimites.net/terminos-y-condiciones/
+- https://dragonballhdsinlimites.net/aviso-legal/
+- https://dragonballhdsinlimites.net/contacto/
+- https://dragonballhdsinlimites.net/sobre-nosotros/
+- https://dragonballhdsinlimites.net/faq/
+
+## Información Legal
+
+- Este sitio es UN PROYECTO FAN-MADE, NO es oficial
+- No afiliado, patrocinado ni respaldado por Toei Animation, Akira Toriyama, Fuji TV
+- Dragon Ball es marca registrada de Toei Animation
+- Todo el contenido se ofrece con fines informativos y de entretenimiento
+- Los derechos de autor pertenecen a sus respectivos creadores
+
+## Tecnologías
+
+- WordPress CMS
+- HTML5 Video Player (iframes de terceros)
+- JSON-LD Schema Markup para VideoObject, TVEpisode, TVSeries, FAQPage
+- Responsive design para móvil, tablet y desktop
+
+## Idioma
+
+El contenido está principalmente en español latino (es-419)
+
+## Última Actualización
+
+Abril 2026
